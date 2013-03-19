@@ -1,0 +1,10 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    slug-compiler (2.0.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  slug-compiler (~> 2.0.0)
