@@ -19,7 +19,6 @@ trap on_exit EXIT
 
 stty -icanon -echo 2>/dev/null || echo -n ""
 
-compile_dir=$(bin/fetch $1)
-# TODO: maybe allow bin/compile-slug or legacy bin/compile
-bin/compile-slug $compile_dir
+compile_dir=$(bin/fetch $SOURCE_URL)
+$COMPILER $compile_dir
 bin/stow $compile_dir
