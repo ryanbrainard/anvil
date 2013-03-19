@@ -1,0 +1,168 @@
+#!/bin/bash
+
+# fail fast
+set -o errexit
+set -o pipefail
+
+compile_dir=$1
+
+# override built-in shell echo
+echo() {
+  /bin/echo "$1" "$2"
+}
+
+error() {
+  /bin/echo $*; exit 1
+}
+
+reformat() {
+  case $(uname) in
+    Darwin) sedargs="-le" ;;
+    *)      sedargs="-ue" ;;
+  esac
+
+  sed $sedargs 's/^ \!     /       ERROR: /g' | \
+  sed $sedargs 's/^----->/ /g'                | \
+  sed $sedargs 's/^      /   /g'
+}
+
+scan_profiled() {
+  ls -la $compile_dir/.profile.d/ 2>&1 || echo "empty"
+}
+
+if [ "$compile_dir" == "" ]; then
+  error "Aborting compilation"
+fi
+
+if [ ! -d $compile_dir ]; then
+  error "Aborting compilation"
+fi
+
+# get root dir
+root_dir=$(pwd)
+
+# create a cache dir
+cache_dir=$(mktemp -t cache_XXXXX)
+rm -rf $cache_dir
+mkdir -p $cache_dir
+
+# create a output dir
+output_dir=$(mktemp -t output_XXXXX)
+rm -rf $output_dir
+mkdir -p $output_dir
+
+# fetch buildpack
+cd $compile_dir
+BUILDPACK_URL=${BUILDPACK_URL:-https://buildkits.herokuapp.com/buildkit/default.tgz}
+#BUILDPACK_ANCHOR=${BUILDPACK_URL#*#}
+#BUILDPACK_URL=${BUILDPACK_URL%%#*}
+#if [ "$BUILDPACK_ANCHOR" == "$BUILDPACK_URL" ]; then
+#  BUILDPACK_ANCHOR=""
+#fi
+#echo -n "Fetching buildpack... "
+#buildpack=$(mktemp -t buildpack_XXXXX)
+#rm -rf $buildpack; mkdir -p $buildpack;
+#case $BUILDPACK_URL in
+#  *.json)
+#    buildpack_manifest=$(mktemp -t buildpack_manifest_XXXXX)
+#    curl -f -s $BUILDPACK_URL -o $buildpack_manifest
+#    $root_dir/bin/download_manifest $buildpack_manifest $buildpack >/dev/null 2>&1
+#    ;;
+#  *.tgz)
+#    cd $buildpack
+#    curl -f -s $BUILDPACK_URL -o- | tar xzf -
+#    cd - >/dev/null 2>&1
+#    ;;
+#  *.git)
+#    git clone --recursive $BUILDPACK_URL $buildpack >/dev/null 2>&1
+#    if [ "$BUILDPACK_ANCHOR" != "" ]; then
+#      cd $buildpack >/dev/null 2>&1
+#      git remote update >/dev/null 2>&1
+#      git checkout "$BUILDPACK_ANCHOR" >/dev/null 2>&1 || \
+#        error "failed, no such ref: $BUILDPACK_ANCHOR"
+#      cd - >/dev/null 2>&1
+#    fi
+#    ;;
+#  *.sh|*.txt)
+#    compile_script=$(mktemp -t compile_script_XXXXX)
+#    cp -r $root_dir/data/buildpack-custom/* $buildpack/
+#    curl -f -L -s $BUILDPACK_URL -o $buildpack/bin/script
+#    chmod +x $buildpack/bin/script
+#    ;;
+#  *)
+#    echo "failed"
+#    error "Unknown buildpack type: $BUILDPACK_URL"
+#    ;;
+#esac
+#cd $compile_dir
+#echo "done"
+
+# get buildpack name
+#echo -n "Detecting buildpack... "
+#buildpack_name=$($buildpack/bin/detect "$compile_dir") \
+#  && echo "done, ${buildpack_name}" \
+#  || error "failed"
+
+# fetch cache
+#if [ "$CACHE_URL" != "" ]; then
+#  echo -n "Fetching cache... "
+#  cache=$(mktemp -t cache_XXXXX)
+#  curl -f -s $CACHE_URL -o $cache
+#  cd $cache_dir
+#  tar xzf $cache >/dev/null 2>&1 && echo "done" || echo "empty"
+#  cd .
+#fi
+
+# scan .profile.d so we can detect changes
+#profiled_scan_old=$(scan_profiled)
+
+# compile
+echo "Compiling app..."
+cd $compile_dir
+
+slug-compiler $compile_dir $BUILDPACK_URL $cache_dir $output_dir 2>&1 | reformat
+
+#$buildpack/bin/compile $compile_dir $cache_dir
+
+# move existing .profile to .profile.d/app.sh
+#if [ -f $compile_dir/.profile ]; then
+#  mkdir -p $compile_dir/.profile.d
+#  mv $compile_dir/.profile $compile_dir/.profile.d/app.sh
+#fi
+
+# scan .profile.d so we can detect changes
+#profiled_scan_new=$(scan_profiled)
+
+# if profile.d has not been written, generate one from bin/release
+# to work around old buildpacks
+#if [ "$profiled_scan_old" == "$profiled_scan_new" ]; then
+#  if [ -x $buildpack/bin/release ]; then
+#    echo -n "Writing .profile.d/buildpack.sh... "
+#    mkdir -p $compile_dir/.profile.d
+#    $buildpack/bin/release $compile_dir | $root_dir/bin/profiled > $compile_dir/.profile.d/buildpack.sh
+#    echo "done"
+#  fi
+#fi
+
+# merge default_process_types from bin/release into the Procfile
+#if [ -x $buildpack/bin/release ]; then
+#    $buildpack/bin/release $compile_dir | $root_dir/bin/procfile $compile_dir/Procfile
+#fi
+
+# put cache
+#if [ "$CACHE_URL" != "" ]; then
+#  echo -n "Putting cache... "
+#  cd $cache_dir
+#  tar czf $cache . >/dev/null 2>&1
+#  cd .
+#  code=$(curl -f -s -X PUT $CACHE_URL -F data=@$cache --write-out %{http_code} --silent --output /dev/null)
+#  if [ "$code" == "200" ]; then
+#    echo "done"
+#  else
+#    echo "failed, got $code"
+#  fi
+#fi
+
+# buildpack cleanup
+#rm -rf $buildpack
+# TODO: what to do with $output dir?
