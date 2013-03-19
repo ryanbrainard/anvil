@@ -71,7 +71,7 @@ echo "Compiling app..."
 cd $compile_dir
 
 slug-compiler $compile_dir $BUILDPACK_URL $cache_dir $output_dir 2>&1 | reformat
-
+echo "DEBUG: slug-compiler exit: $?"
 #$buildpack/bin/compile $compile_dir $cache_dir
 
 # move existing .profile to .profile.d/app.sh
