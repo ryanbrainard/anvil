@@ -1,9 +1,9 @@
 GIT
   remote: https://github.com/ryanbrainard/slug-compiler.git
-  revision: abeb5ca9b2d153a7a77a91694d2cf5834a32fbf4
+  revision: d1aaea29aa1cba887b66e92a03b7728de9f338b0
   branch: anvilness
   specs:
-    slug-compiler (2.0.0)
+    slug-compiler (2.0.1)
 
 GEM
   remote: https://rubygems.org/
