@@ -1,7 +1,7 @@
 GIT
   remote: https://github.com/ryanbrainard/slug-compiler.git
   revision: d1aaea29aa1cba887b66e92a03b7728de9f338b0
-  branch: anvilness
+  tag: 2.0.1
   specs:
     slug-compiler (2.0.1)
 
@@ -13,4 +13,4 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  slug-compiler!
+  slug-compiler (= 2.0.1)!
