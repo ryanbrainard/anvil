@@ -1,7 +1,7 @@
 GIT
   remote: https://github.com/ryanbrainard/slug-compiler.git
-  revision: d1aaea29aa1cba887b66e92a03b7728de9f338b0
-  tag: 2.0.1
+  revision: 084c10355641d4978eb4ebbcf38cd57f2a4a63f8
+  branch: anvilness
   specs:
     slug-compiler (2.0.1)
 
@@ -14,5 +14,5 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  slug-compiler (= 2.0.1)!
+  slug-compiler!
   thor
