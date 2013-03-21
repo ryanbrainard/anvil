@@ -51,7 +51,15 @@ output_dir=$(mktemp -t output_XXXXX)
 rm -rf $output_dir
 mkdir -p $output_dir
 
-BUILDPACK_URL=${BUILDPACK_URL:-https://buildkits.herokuapp.com/buildkit/default.tgz}
+buildpack=${BUILDPACK_URL:-https://buildkits.herokuapp.com/buildkit/default.tgz}
+
+# fetch manifest-based buildpack
+if [[ $BUILDPACK_URL =~ ^.*\.json$ ]]; then
+  buildpack_manifest=$(mktemp -t buildpack_manifest_XXXXX)
+  buildpack=$(mktemp -t buildpack_XXXXX)
+  curl -f -s $BUILDPACK_URL -o $buildpack_manifest
+  $root_dir/bin/download_manifest $buildpack_manifest $buildpack >/dev/null 2>&1
+fi
 
 # fetch cache
 if [ "$CACHE_URL" != "" ]; then
@@ -70,9 +78,7 @@ fi
 echo "Compiling app..."
 cd $compile_dir
 
-slug-compiler $compile_dir $BUILDPACK_URL $cache_dir $output_dir 2>&1 | reformat
-echo "DEBUG: slug-compiler exit: $?"
-#$buildpack/bin/compile $compile_dir $cache_dir
+slug-compiler $compile_dir $buildpack $cache_dir $output_dir 2>&1 | reformat
 
 # move existing .profile to .profile.d/app.sh
 #if [ -f $compile_dir/.profile ]; then
