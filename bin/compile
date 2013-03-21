@@ -56,7 +56,7 @@ buildpack=${BUILDPACK_URL:-https://buildkits.herokuapp.com/buildkit/default.tgz}
 # fetch manifest-based buildpack
 if [[ $BUILDPACK_URL =~ ^.*\.json$ ]]; then
   buildpack_manifest=$(mktemp -t buildpack_manifest_XXXXX)
-  buildpack=$(mktemp -t buildpack_XXXXX)
+  buildpack=$(mktemp -d -t buildpack_XXXXX)
   curl -f -s $BUILDPACK_URL -o $buildpack_manifest
   $root_dir/bin/download_manifest $buildpack_manifest $buildpack >/dev/null 2>&1
 fi
