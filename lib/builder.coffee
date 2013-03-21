@@ -15,7 +15,6 @@ class Builder
           ANVIL_HOST:    process.env.ANVIL_HOST
           BUILDPACK_URL: options.buildpack
           CACHE_URL:     @cache_with_default(options.cache)
-          COMPILER:      @resolve_compiler(options.compiler)
           EXIT_PUT_URL:  exit_put_url
           NODE_ENV:      process.env.NODE_ENV
           NODE_PATH:     process.env.NODE_PATH
@@ -37,7 +36,6 @@ class Builder
       env:       req.body.env
       keepalive: req.body.keepalive
       type:      req.body.type
-      compiler:  req.body.compiler
     require("builder").init().build req.body.source, options, (build, builder) ->
       res.writeHead 200
         "Content-Type":      "text/plain"
@@ -77,9 +75,6 @@ class Builder
   slug_url: (type) ->
     ext = if type is "deb" then "deb" else "tgz"
     "#{process.env.ANVIL_HOST}/slugs/#{@id}.#{ext}"
-
-  resolve_compiler: (compiler) ->
-    if compiler is "slug-compiler" then "bin/compile-slug" else "bin/compile"
 
 module.exports.init = () ->
   new Builder()
