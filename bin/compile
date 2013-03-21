@@ -78,7 +78,7 @@ fi
 echo "Compiling app..."
 
 
-$root_dir/bin/slug-compiler $compile_dir $buildpack $cache_dir $output_dir 2>&1 | reformat
+vendor/bundle/bin/slug-compiler $compile_dir $buildpack $cache_dir $output_dir 2>&1 | reformat
 
 # move existing .profile to .profile.d/app.sh
 #if [ -f $compile_dir/.profile ]; then
