@@ -3,6 +3,7 @@
 # fail fast
 set -o errexit
 set -o pipefail
+set -x
 
 echo() {
   /bin/echo "$1" "$2"
@@ -15,10 +16,9 @@ on_exit() {
   curl -s -T $exitcode "$EXIT_PUT_URL"
 }
 
+
 trap on_exit EXIT
-
 stty -icanon -echo 2>/dev/null || echo -n ""
-
 compile_dir=$(bin/fetch $1)
 bin/compile $compile_dir
 bin/stow $compile_dir

@@ -32,10 +32,8 @@ datastore_link_fetchers = (manifest, dir) ->
   for name, file_manifest of manifest when file_manifest.link
     do (name, file_manifest) =>
       fetchers[file_manifest.link] = (async_cb) =>
-        console.log "linking", name, file_manifest
         filename = "#{dir}/#{name}"
         mkdirp path.dirname(filename), =>
-          console.log "link", filename, file_manifest.link
           fs.symlink "#{dir}/#{file_manifest.link}", filename, ->
             fs.chmod filename, file_manifest.mode, (err) ->
               async_cb null, true
