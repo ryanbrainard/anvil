@@ -36,7 +36,7 @@ upload() {
   # writing to tmp file because curl wants to add Content-Type header otherwise
   file=$(mktemp -t upload_XXXXX)
   echo "$content" > $file
-  curl -v --upload-file $file $url
+  curl -f -s -T $file $url
   rm -f $file
 }
 
