@@ -32,6 +32,7 @@ class Builder
                   ADDONS_PUT_URL:         addons_put_url
                   CONFIG_VARS_PUT_URL:    config_vars_put_url
                   FRAMEWORK_PUT_URL:      framework_put_url
+                  WRITE_PROFILE_D:        options.write_profile_d
                 env[key] = val for key, val of JSON.parse(options.env || "{}")
                 builder  = @spawner.spawn("bin/compile-wrapper $SOURCE_URL", env:env)
                 cb builder, this
@@ -39,12 +40,12 @@ class Builder
 
   build_request: (req, res, logger) ->
     options =
-      buildpack: req.body.buildpack
-      cache:     req.body.cache
-      env:       req.body.env
-      keepalive: req.body.keepalive
-      type:      req.body.type
-
+      buildpack:         req.body.buildpack
+      cache:             req.body.cache
+      env:               req.body.env
+      keepalive:         req.body.keepalive
+      type:              req.body.type
+      write_profile_d:   req.body.write_profile_d ? "1"
 
     require("builder").init().build req.body.source, options, (build, builder) ->
 

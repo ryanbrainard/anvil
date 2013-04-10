@@ -130,23 +130,25 @@ cd $compile_dir
 
 $buildpack/bin/compile $compile_dir $cache_dir 2>&1 | reformat
 
-# move existing .profile to .profile.d/app.sh
-if [ -f $compile_dir/.profile ]; then
-  mkdir -p $compile_dir/.profile.d
-  mv $compile_dir/.profile $compile_dir/.profile.d/app.sh
-fi
-
-# scan .profile.d so we can detect changes
-profiled_scan_new=$(scan_profiled)
-
-# if profile.d has not been written, generate one from bin/release
-# to work around old buildpacks
-if [ "$profiled_scan_old" == "$profiled_scan_new" ]; then
-  if [ -x $buildpack/bin/release ]; then
-    echo -n "Writing .profile.d/buildpack.sh... "
+if [ "$WRITE_PROFILE_D" -eq 1 ]; then
+  # move existing .profile to .profile.d/app.sh
+  if [ -f $compile_dir/.profile ]; then
     mkdir -p $compile_dir/.profile.d
-    $buildpack/bin/release $compile_dir | $root_dir/bin/profiled > $compile_dir/.profile.d/buildpack.sh
-    echo "done"
+    mv $compile_dir/.profile $compile_dir/.profile.d/app.sh
+  fi
+
+  # scan .profile.d so we can detect changes
+  profiled_scan_new=$(scan_profiled)
+
+  # if profile.d has not been written, generate one from bin/release
+  # to work around old buildpacks
+  if [ "$profiled_scan_old" == "$profiled_scan_new" ]; then
+    if [ -x $buildpack/bin/release ]; then
+      echo -n "Writing .profile.d/buildpack.sh... "
+      mkdir -p $compile_dir/.profile.d
+      $buildpack/bin/release $compile_dir | $root_dir/bin/profiled > $compile_dir/.profile.d/buildpack.sh
+      echo "done"
+    fi
   fi
 fi
 
