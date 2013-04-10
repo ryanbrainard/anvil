@@ -1,0 +1,12 @@
+#!/usr/bin/env ruby
+
+require 'json'
+
+process_types = STDIN.read.split("\n").inject({}) do |ps, line|
+  if m = line.match(/^([a-zA-Z0-9_]+):?\s+(.*)/)
+    ps[m[1]] = m[2]
+  end
+  ps
+end
+
+JSON.unparse(process_types)

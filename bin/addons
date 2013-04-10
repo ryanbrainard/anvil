@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+
+require "yaml"
+
+release  = YAML.load(STDIN.read) || {}
+section  = release["addons"] || {}
+puts section

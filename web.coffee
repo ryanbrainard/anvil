@@ -50,8 +50,8 @@ app.put "/cache/:id.tgz", (req, res) ->
   storage.create_stream "/cache/#{req.params.id}.tgz", fs.createReadStream(req.files.data.path), (err) ->
     res.send("ok")
 
-app.get "/exit/:id", (req, res) ->
-  storage.get "/exit/#{req.params.id}", (err, get) ->
+app.get "/:metadata(exit|process_types|addons|config_vars|framework)/:id", (req, res) ->
+  storage.get "/#{req.params.metadata}/#{req.params.id}", (err, get) ->
     get.on "data", (chunk) -> res.write chunk
     get.on "end",          -> res.end()
 

@@ -3,7 +3,6 @@
 # fail fast
 set -o errexit
 set -o pipefail
-set -x 
 compile_dir=$1
 
 # override built-in shell echo
@@ -38,17 +37,14 @@ if [ ! -d $compile_dir ]; then
   error "Aborting compilation"
 fi
 
-echo "getting root dir"
 # get root dir
 root_dir=$(pwd)
 
-echo "creating cache dir"
 # create a cache dir
 cache_dir=$(mktemp -t cache_XXXXX)
 rm -rf $cache_dir
 mkdir -p $cache_dir
 
-echo "starting fetch buildpack"
 # fetch buildpack
 cd $compile_dir
 BUILDPACK_URL=${BUILDPACK_URL:-https://buildkits.herokuapp.com/buildkit/default.tgz}
@@ -101,6 +97,9 @@ buildpack_name=$($buildpack/bin/detect "$compile_dir") \
   && echo "done, ${buildpack_name}" \
   || error "failed"
 
+# put buildpack name as framework
+curl -f -s -d "$buildpack_name" $FRAMEWORK_PUT_URL
+
 # fetch cache
 if [ "$CACHE_URL" != "" ]; then
   echo -n "Fetching cache... "
@@ -140,9 +139,13 @@ if [ "$profiled_scan_old" == "$profiled_scan_new" ]; then
   fi
 fi
 
-# merge default_process_types from bin/release into the Procfile
+# merge default_process_types from bin/release into the Procfile and push other release metadata
 if [ -x $buildpack/bin/release ]; then
-    $buildpack/bin/release $compile_dir | $root_dir/bin/procfile $compile_dir/Procfile
+    release_yaml=$($buildpack/bin/release $compile_dir)
+    cat $release_yaml | $root_dir/bin/procfile $compile_dir/Procfile
+    curl -f -s -d "$(cat  $compile_dir/Procfile | root_dir/bin/process_types)" $PROCESS_TYPES_PUT_URL
+    curl -f -s -d "$(echo $release_yaml | $root_dir/bin/addons)" $ADDONS_PUT_URL
+    curl -f -s -d "$(echo $release_yaml | $root_dir/bin/config_vars)" $CONFIG_VARS_PUT_URL
 fi
 
 # put cache
@@ -158,19 +161,6 @@ if [ "$CACHE_URL" != "" ]; then
     echo "failed, got $code"
   fi
 fi
-
-# put procfile
-if [ "$PROC_PUT_URL" != "" ]; then
-  echo -n "Putting proc manifest... "
-  code=$(curl -f -s -T $compile_dir/Procfile $PROC_PUT_URL)
-  if [ "$code" == "200" ]; then
-    echo "done"
-    echo "Success, proc manifest at ${PROC_PUT_URL}"
-  else
-    echo "failed, got $code"
-  fi
-fi
-
 
 # buildpack cleanup
 rm -rf $buildpack

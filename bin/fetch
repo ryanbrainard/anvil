@@ -3,7 +3,6 @@
 # fail fast
 set -o errexit
 set -o pipefail
-set -x 
 
 id=$1
 
@@ -75,6 +74,5 @@ case $source_url in
     ;;
 esac
 
-echo "done fetching" >&2
 
 echo $compile_dir

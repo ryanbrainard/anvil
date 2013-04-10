@@ -3,7 +3,6 @@
 # fail fast
 set -o errexit
 set -o pipefail
-set -x
 
 echo() {
   /bin/echo "$1" "$2"
