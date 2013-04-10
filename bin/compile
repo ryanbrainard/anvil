@@ -35,7 +35,7 @@ upload() {
 
   # writing to tmp file because curl wants to add Content-Type header otherwise
   file=$(mktemp -t upload_XXXXX)
-  echo "$content" > $file
+  echo -n "$content" > $file
   curl -f -s -T $file $url
   rm -f $file
 }
@@ -153,10 +153,10 @@ fi
 # merge default_process_types from bin/release into the Procfile and push other release metadata
 if [ -x $buildpack/bin/release ]; then
     release_yaml="$($buildpack/bin/release $compile_dir)"
-    echo "$release_yaml" | $root_dir/bin/procfile $compile_dir/Procfile
+    echo -n "$release_yaml" | $root_dir/bin/procfile $compile_dir/Procfile
     upload "$(cat  $compile_dir/Procfile | $root_dir/bin/process_types)" $PROCESS_TYPES_PUT_URL
-    upload "$(echo "$release_yaml" | $root_dir/bin/addons)" $ADDONS_PUT_URL
-    upload "$(echo "$release_yaml" | $root_dir/bin/config_vars)" $CONFIG_VARS_PUT_URL
+    upload "$(echo -n "$release_yaml" | $root_dir/bin/addons)" $ADDONS_PUT_URL
+    upload "$(echo -n "$release_yaml" | $root_dir/bin/config_vars)" $CONFIG_VARS_PUT_URL
 fi
 
 # put cache
