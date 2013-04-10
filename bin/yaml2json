@@ -3,6 +3,6 @@
 require "yaml"
 require "json"
 
-release  = YAML.load(STDIN.read) || {}
-section  = release["addons"] || {}
+yaml  = YAML.load(ARGV[0]) || {}
+section  = yaml[ARGV[1]] || {}
 puts JSON.unparse(section)

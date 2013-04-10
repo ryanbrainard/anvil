@@ -155,8 +155,8 @@ if [ -x $buildpack/bin/release ]; then
     release_yaml="$($buildpack/bin/release $compile_dir)"
     echo -n "$release_yaml" | $root_dir/bin/procfile $compile_dir/Procfile
     upload "$(cat  $compile_dir/Procfile | $root_dir/bin/process_types)" $PROCESS_TYPES_PUT_URL
-    upload "$(echo -n "$release_yaml" | $root_dir/bin/addons)" $ADDONS_PUT_URL
-    upload "$(echo -n "$release_yaml" | $root_dir/bin/config_vars)" $CONFIG_VARS_PUT_URL
+    upload "$($root_dir/bin/yaml2json "$release_yaml" "addons")" $ADDONS_PUT_URL
+    upload "$($root_dir/bin/yaml2json "$release_yaml" "config_vars")" $CONFIG_VARS_PUT_URL
 fi
 
 # put cache

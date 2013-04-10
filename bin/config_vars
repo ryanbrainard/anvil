@@ -1,8 +1,0 @@
-#!/usr/bin/env ruby
-
-require "yaml"
-require "json"
-
-release  = YAML.load(STDIN.read) || {}
-section  = release["config_vars"] || {}
-puts JSON.unparse(section)
