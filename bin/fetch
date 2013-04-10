@@ -74,5 +74,6 @@ case $source_url in
     ;;
 esac
 
+echo "done" >&2
 
 echo $compile_dir
