@@ -1,7 +1,8 @@
 #!/usr/bin/env ruby
 
 require "yaml"
+require "json"
 
 release  = YAML.load(STDIN.read) || {}
 section  = release["addons"] || {}
-puts section
+puts JSON.unparse(section)

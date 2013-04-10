@@ -9,4 +9,4 @@ process_types = STDIN.read.split("\n").inject({}) do |ps, line|
   ps
 end
 
-JSON.unparse(process_types)
+puts JSON.unparse(process_types)

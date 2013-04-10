@@ -29,6 +29,17 @@ scan_profiled() {
   ls -la $compile_dir/.profile.d/ 2>&1 || echo "empty"
 }
 
+upload() {
+  content=$1
+  url=$2
+
+  # writing to tmp file because curl wants to add Content-Type header otherwise
+  file=$(mktemp -t upload_XXXXX)
+  echo "$content" > $file
+  curl -v --upload-file $file $url
+  rm -f $file
+}
+
 if [ "$compile_dir" == "" ]; then
   error "Aborting compilation"
 fi
@@ -98,7 +109,7 @@ buildpack_name=$($buildpack/bin/detect "$compile_dir") \
   || error "failed"
 
 # put buildpack name as framework
-curl -f -s -d "$buildpack_name" $FRAMEWORK_PUT_URL
+upload "$buildpack_name" $FRAMEWORK_PUT_URL
 
 # fetch cache
 if [ "$CACHE_URL" != "" ]; then
@@ -141,11 +152,11 @@ fi
 
 # merge default_process_types from bin/release into the Procfile and push other release metadata
 if [ -x $buildpack/bin/release ]; then
-    release_yaml=$($buildpack/bin/release $compile_dir)
-    cat $release_yaml | $root_dir/bin/procfile $compile_dir/Procfile
-    curl -f -s -d "$(cat  $compile_dir/Procfile | root_dir/bin/process_types)" $PROCESS_TYPES_PUT_URL
-    curl -f -s -d "$(echo $release_yaml | $root_dir/bin/addons)" $ADDONS_PUT_URL
-    curl -f -s -d "$(echo $release_yaml | $root_dir/bin/config_vars)" $CONFIG_VARS_PUT_URL
+    release_yaml="$($buildpack/bin/release $compile_dir)"
+    echo "$release_yaml" | $root_dir/bin/procfile $compile_dir/Procfile
+    upload "$(cat  $compile_dir/Procfile | $root_dir/bin/process_types)" $PROCESS_TYPES_PUT_URL
+    upload "$(echo "$release_yaml" | $root_dir/bin/addons)" $ADDONS_PUT_URL
+    upload "$(echo "$release_yaml" | $root_dir/bin/config_vars)" $CONFIG_VARS_PUT_URL
 fi
 
 # put cache

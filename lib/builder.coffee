@@ -13,29 +13,29 @@ class Builder
       @storage.generate_put_url "exit/#{@id}", (err, exit_put_url) =>
         @storage.generate_put_url "process_types/#{@id}", (err, process_types_put_url) =>
           @storage.generate_put_url "config_vars/#{@id}", (err, config_vars_put_url) =>
-           @storage.generate_put_url "addons/#{@id}", (err, addons_put_url) =>
-            @storage.generate_put_url "framework/#{@id}", (err, framework_put_url) =>
-              env =
-                ANVIL_HOST:             process.env.ANVIL_HOST
-                BUILDPACK_URL:          options.buildpack
-                CACHE_URL:              @cache_with_default(options.cache)
-                EXIT_PUT_URL:           exit_put_url
-                NODE_ENV:               process.env.NODE_ENV
-                NODE_PATH:              process.env.NODE_PATH
-                PATH:                   process.env.PATH
-                SLUG_ID:                @id
-                SLUG_URL:               @slug_ext(options.type)
-                SLUG_PUT_URL:           slug_put_url
-                SLUG_TYPE:              ext
-                SOURCE_URL:             source
-                PROCESS_TYPES_PUT_URL:  process_types_put_url
-                ADDONS_PUT_URL:         addons_put_url
-                CONFIG_VARS_PUT_URL:    config_vars_put_url
-                FRAMEWORK_PUT_URL:      framework_put_url
-              env[key] = val for key, val of JSON.parse(options.env || "{}")
-              builder  = @spawner.spawn("bin/compile-wrapper $SOURCE_URL", env:env)
-              cb builder, this
-              builder.emit "data", "Launching build process... "
+            @storage.generate_put_url "addons/#{@id}", (err, addons_put_url) =>
+              @storage.generate_put_url "framework/#{@id}", (err, framework_put_url) =>
+                env =
+                  ANVIL_HOST:             process.env.ANVIL_HOST
+                  BUILDPACK_URL:          options.buildpack
+                  CACHE_URL:              @cache_with_default(options.cache)
+                  EXIT_PUT_URL:           exit_put_url
+                  NODE_ENV:               process.env.NODE_ENV
+                  NODE_PATH:              process.env.NODE_PATH
+                  PATH:                   process.env.PATH
+                  SLUG_ID:                @id
+                  SLUG_URL:               @slug_url(options.type)
+                  SLUG_PUT_URL:           slug_put_url
+                  SLUG_TYPE:              ext
+                  SOURCE_URL:             source
+                  PROCESS_TYPES_PUT_URL:  process_types_put_url
+                  ADDONS_PUT_URL:         addons_put_url
+                  CONFIG_VARS_PUT_URL:    config_vars_put_url
+                  FRAMEWORK_PUT_URL:      framework_put_url
+                env[key] = val for key, val of JSON.parse(options.env || "{}")
+                builder  = @spawner.spawn("bin/compile-wrapper $SOURCE_URL", env:env)
+                cb builder, this
+                builder.emit "data", "Launching build process... "
 
   build_request: (req, res, logger) ->
     options =
@@ -53,7 +53,7 @@ class Builder
         "Transfer-Encoding":   "chunked"
         "X-Cache-Url":         builder.cache_url
         "X-Manifest-Id":       builder.id
-        "X-Slug-Url":          builder.url_for('slugs', builder.slug_ext(req.body.type))
+        "X-Slug-Url":          builder.slug_url(req.body.type)
         "X-Exit-Url":          builder.url_for('exit')
         "X-Config-Vars-Url":   builder.url_for('config_vars')
         "X-Process-Types-Url": builder.url_for('process_types')
@@ -88,11 +88,11 @@ class Builder
     if (cache || "") is "" then @cache_url = @storage.create_cache()
     @cache_url
 
-  slug_ext: (type) ->
-    if type is "deb" then "deb" else "tgz"
-
   url_for: (key, ext) ->
     "#{process.env.ANVIL_HOST}/#{key}/#{@id}" + if ext then ".#{ext}" else ""
+
+  slug_url: (type) ->
+    @url_for('slugs', if type is "deb" then "deb" else "tgz")
 
 module.exports.init = () ->
   new Builder()
